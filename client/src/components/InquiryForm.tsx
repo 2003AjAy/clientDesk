@@ -19,6 +19,7 @@ const InquiryForm: React.FC<InquiryFormProps> = ({ isOpen, onClose }) => {
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
@@ -37,18 +38,25 @@ const InquiryForm: React.FC<InquiryFormProps> = ({ isOpen, onClose }) => {
     
     const validationErrors = validateForm(formData);
     setErrors(validationErrors);
+    setSubmitError(null);
     
     if (!isValidForm(validationErrors)) {
       return;
     }
 
     setIsSubmitting(true);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
+    try {
+      const response = await fetch('http://localhost:5000/api/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      if (!response.ok) throw new Error('Failed to submit');
+      setIsSubmitted(true);
+    } catch (error) {
+      setSubmitError('Submission failed. Please try again.');
+    }
     setIsSubmitting(false);
-    setIsSubmitted(true);
     
     // Reset form after 3 seconds
     setTimeout(() => {
@@ -113,6 +121,7 @@ const InquiryForm: React.FC<InquiryFormProps> = ({ isOpen, onClose }) => {
         {/* Form */}
         {!isSubmitted && (
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
+            {submitError && <div className="text-red-600 text-center mb-2">{submitError}</div>}
             <div className="grid md:grid-cols-2 gap-6">
               {/* Name Field */}
               <div>
