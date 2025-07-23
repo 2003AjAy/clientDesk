@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Code, Menu, X, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface NavbarProps {
   onOpenForm: () => void;
@@ -8,6 +9,7 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = ({ onOpenForm }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -77,14 +79,14 @@ const Navbar: React.FC<NavbarProps> = ({ onOpenForm }) => {
           {/* CTA Button */}
           <div className="hidden md:block">
             <button
-              onClick={onOpenForm}
+              onClick={() => navigate('/dashboard')}
               className={`group inline-flex items-center px-6 py-2 text-sm font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 ${
                 isScrolled
                   ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl'
                   : 'bg-white text-blue-600 hover:bg-gray-100'
               }`}
             >
-              Get Started
+              Dashboard
               <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
           </div>
@@ -124,12 +126,12 @@ const Navbar: React.FC<NavbarProps> = ({ onOpenForm }) => {
               <div className="pt-2 mt-2 border-t border-gray-200">
                 <button
                   onClick={() => {
-                    onOpenForm();
+                    navigate('/dashboard');
                     setIsMenuOpen(false);
                   }}
                   className="w-full flex items-center justify-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  Get Started
+                  Dashboard
                   <ArrowRight className="ml-2 w-4 h-4" />
                 </button>
               </div>
