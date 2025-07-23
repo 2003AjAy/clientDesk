@@ -6,30 +6,15 @@ import Testimonials from './components/Testimonials';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
 import InquiryForm from './components/InquiryForm';
+import LandingPage from './pages/LandingPage';
 import './index.css';
 
 
 function App() {
-  const [isFormOpen, setIsFormOpen] = useState(false);
-
-  const handleOpenForm = () => {
-    setIsFormOpen(true);
-  };
-
-  const handleCloseForm = () => {
-    setIsFormOpen(false);
-  };
-
   return (
-    <div className="min-h-screen bg-white">
-      <Navbar onOpenForm={handleOpenForm} />
-      <Hero onOpenForm={handleOpenForm} />
-      <Features />
-      <Testimonials />
-      <Contact onOpenForm={handleOpenForm} />
-      <Footer onOpenForm={handleOpenForm} />
-      <InquiryForm isOpen={isFormOpen} onClose={handleCloseForm} />
-    </div>
+    <>
+      <LandingPage />
+    </>
   );
 }
 

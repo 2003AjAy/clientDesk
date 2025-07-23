@@ -6,4 +6,4 @@ client/build
 server/build
 
 # Env
-/server/.env
+./server/.env
