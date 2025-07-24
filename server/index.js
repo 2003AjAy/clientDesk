@@ -23,6 +23,60 @@ app.post('/api/submit', async (req, res) => {
   }
 });
 
+// Fetch all inquiries as projects
+app.get('/api/projects', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM inquiries ORDER BY date DESC');
+    // Map DB fields to Project type expected by frontend
+    const projects = result.rows.map(row => ({
+      id: row.id.toString(),
+      clientName: row.name,
+      email: row.email,
+      phone: row.phone,
+      projectType: row.project_type,
+      requirements: row.requirements,
+      status: row.status || 'Pending', // Default to Pending if not present
+      createdAt: row.date,
+      progress: row.progress || 0, // Default to 0 if not present
+      timeline: [], // You can implement timeline logic if you have a related table
+      notes: [],    // You can implement notes logic if you have a related table
+    }));
+    res.json(projects);
+  } catch (error) {
+    console.error('Error fetching projects:', error);
+    res.status(500).json({ message: 'Failed to fetch projects' });
+  }
+});
+
+// Fetch a single inquiry/project by ID
+app.get('/api/projects/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query('SELECT * FROM inquiries WHERE id = $1', [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+    const row = result.rows[0];
+    const project = {
+      id: row.id.toString(),
+      clientName: row.name,
+      email: row.email,
+      phone: row.phone,
+      projectType: row.project_type,
+      requirements: row.requirements,
+      status: row.status || 'Pending',
+      createdAt: row.date,
+      progress: row.progress || 0,
+      timeline: [],
+      notes: [],
+    };
+    res.json(project);
+  } catch (error) {
+    console.error('Error fetching project:', error);
+    res.status(500).json({ message: 'Failed to fetch project' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 }); 

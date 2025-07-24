@@ -1,21 +1,87 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useProjects } from '../context/ProjectContext';
 import { StatusBadge } from '../components/StatusBadge';
 import { ProgressBar } from '../components/progressBar';
 import { ProjectTimeline } from '../components/ProjectTimeline';
 import { ProjectNotes } from '../components/ProjectNotes';
+import { fetchProjectById } from '../utils/api';
 import { ArrowLeft, User, Mail, Phone, Calendar, FileText, Settings, Briefcase, Star } from 'lucide-react';
 
 export const ProjectDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getProject, updateProjectStatus, addProjectNote, updateProjectTask, addProjectTask } = useProjects();
-  
-  const project = useMemo(() => {
-    return id ? getProject(id) : undefined;
-  }, [id, getProject]);
+  const [project, setProject] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (!id) return;
+    setLoading(true);
+    fetchProjectById(id)
+      .then(data => {
+        setProject(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        setError(err.message);
+        setLoading(false);
+      });
+  }, [id]);
+
+  const handleStatusChange = (newStatus: string) => {
+    if (id) {
+      // This function will need to be updated to use a context or a state management solution
+      // For now, it will be a placeholder as the context is removed.
+      console.log(`Updating status to: ${newStatus}`);
+      // Example: updateProjectStatus(id, newStatus as typeof project.status);
+    }
+  };
+
+  const handleAddNote = (content: string) => {
+    if (id) {
+      // This function will need to be updated to use a context or a state management solution
+      // For now, it will be a placeholder as the context is removed.
+      console.log(`Adding note: ${content}`);
+      // Example: addProjectNote(id, content);
+    }
+  };
+
+  const handleUpdateTask = (taskId: string, status: 'completed' | 'current' | 'pending') => {
+    if (id) {
+      // This function will need to be updated to use a context or a state management solution
+      // For now, it will be a placeholder as the context is removed.
+      console.log(`Updating task ${taskId} to status: ${status}`);
+      // Example: updateProjectTask(id, taskId, status);
+    }
+  };
+
+  const handleAddTask = (title: string, description?: string) => {
+    if (id) {
+      // This function will need to be updated to use a context or a state management solution
+      // For now, it will be a placeholder as the context is removed.
+      console.log(`Adding task: ${title}`);
+      // Example: addProjectTask(id, title, description);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">Loading...</div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-red-500">Error: {error}</div>
+    );
+  }
   if (!project) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 flex items-center justify-center">
@@ -31,38 +97,6 @@ export const ProjectDetail: React.FC = () => {
       </div>
     );
   }
-
-  const handleStatusChange = (newStatus: string) => {
-    if (id) {
-      updateProjectStatus(id, newStatus as typeof project.status);
-    }
-  };
-
-  const handleAddNote = (content: string) => {
-    if (id) {
-      addProjectNote(id, content);
-    }
-  };
-
-  const handleUpdateTask = (taskId: string, status: 'completed' | 'current' | 'pending') => {
-    if (id) {
-      updateProjectTask(id, taskId, status);
-    }
-  };
-
-  const handleAddTask = (title: string, description?: string) => {
-    if (id) {
-      addProjectTask(id, title, description);
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">

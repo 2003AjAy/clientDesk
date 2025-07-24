@@ -1,34 +1,51 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { ProjectTable } from '../components/ProjectTable';
 import { ProjectFilters } from '../components/ProjectFilters';
-import { useProjects } from '../context/ProjectContext';
+import { fetchProjects } from '../utils/api';
 import { BarChart3, Users, Clock, CheckCircle, TrendingUp, Activity, Search } from 'lucide-react';
+import { Project } from '../types/Project';
 
 export const Dashboard: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
-  const { projects } = useProjects();
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLoading(true);
+    fetchProjects()
+      .then(data => {
+        setProjects(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        setError(err.message);
+        setLoading(false);
+      });
+  }, []);
 
   const filteredProjects = useMemo(() => {
-    return projects.filter((project) => {
+    return projects.filter((project: Project) => {
       const matchesStatus = statusFilter === 'All' || project.status === statusFilter;
       const matchesSearch = 
         project.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         project.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
         project.projectType.toLowerCase().includes(searchTerm.toLowerCase());
-      
       return matchesStatus && matchesSearch;
     });
   }, [statusFilter, searchTerm, projects]);
 
   const stats = useMemo(() => {
     const total = projects.length;
-    const pending = projects.filter(p => p.status === 'Pending').length;
-    const inProgress = projects.filter(p => p.status === 'In Progress').length;
-    const completed = projects.filter(p => p.status === 'Completed').length;
-    
+    const pending = projects.filter((p: Project) => p.status === 'Pending').length;
+    const inProgress = projects.filter((p: Project) => p.status === 'In Progress').length;
+    const completed = projects.filter((p: Project) => p.status === 'Completed').length;
     return { total, pending, inProgress, completed };
   }, [projects]);
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  if (error) return <div className="min-h-screen flex items-center justify-center text-red-500">Error: {error}</div>;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
@@ -45,7 +62,6 @@ export const Dashboard: React.FC = () => {
             </div>
           </div>
         </div>
-
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
           <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-shadow duration-300">
@@ -65,7 +81,6 @@ export const Dashboard: React.FC = () => {
               </div>
             </div>
           </div>
-
           <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-shadow duration-300">
             <div className="flex items-center">
               <div className="flex-shrink-0">
@@ -82,7 +97,6 @@ export const Dashboard: React.FC = () => {
               </div>
             </div>
           </div>
-
           <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-shadow duration-300">
             <div className="flex items-center">
               <div className="flex-shrink-0">
@@ -99,7 +113,6 @@ export const Dashboard: React.FC = () => {
               </div>
             </div>
           </div>
-
           <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-shadow duration-300">
             <div className="flex items-center">
               <div className="flex-shrink-0">
@@ -117,7 +130,6 @@ export const Dashboard: React.FC = () => {
             </div>
           </div>
         </div>
-
         {/* Filters */}
         <ProjectFilters
           statusFilter={statusFilter}
@@ -125,7 +137,6 @@ export const Dashboard: React.FC = () => {
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
         />
-
         {/* Projects Table */}
         <div className="mb-6">
           <div className="flex justify-between items-center mb-4">
@@ -135,7 +146,6 @@ export const Dashboard: React.FC = () => {
           </div>
           <ProjectTable projects={filteredProjects} />
         </div>
-
         {filteredProjects.length === 0 && (
           <div className="text-center py-12">
             <div className="max-w-md mx-auto">
