@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { Project, ProjectNote } from '../types/Project';
+import { ProjectNote } from '../types/Project';
 import { Clock, Plus, MessageSquare, Edit3 } from 'lucide-react';
 
 interface ProjectNotesProps {
-  project: Project;
+  notes: ProjectNote[];
   onAddNote: (content: string) => void;
 }
 
-export const ProjectNotes: React.FC<ProjectNotesProps> = ({ project, onAddNote }) => {
+export const ProjectNotes: React.FC<ProjectNotesProps> = ({ notes, onAddNote }) => {
   const [newNote, setNewNote] = useState('');
   const [isAdding, setIsAdding] = useState(false);
 
@@ -40,7 +40,7 @@ export const ProjectNotes: React.FC<ProjectNotesProps> = ({ project, onAddNote }
       <div className="px-6 py-6">
         {/* Existing Notes */}
         <div className="space-y-6 mb-8">
-          {project.notes.map((note) => (
+          {notes.map((note) => (
             <div key={note.id} className="flex space-x-4 p-4 bg-gray-50 rounded-lg border border-gray-100">
               <div className="flex-shrink-0">
                 <div className="h-10 w-10 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center shadow-sm">

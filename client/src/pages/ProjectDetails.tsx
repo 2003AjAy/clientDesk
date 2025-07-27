@@ -4,63 +4,97 @@ import { StatusBadge } from '../components/StatusBadge';
 import { ProgressBar } from '../components/progressBar';
 import { ProjectTimeline } from '../components/ProjectTimeline';
 import { ProjectNotes } from '../components/ProjectNotes';
-import { fetchProjectById } from '../utils/api';
+import { 
+  fetchProjectById, 
+  fetchProjectNotes, 
+  addProjectNote, 
+  fetchProjectTimeline, 
+  addProjectTimelineItem, 
+  updateProjectTimelineItem,
+  updateProjectStatus
+} from '../utils/api';
 import { ArrowLeft, User, Mail, Phone, Calendar, FileText, Settings, Briefcase, Star } from 'lucide-react';
+import { ProjectNote, ProjectTimelineItem } from '../types/Project';
 
 export const ProjectDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [project, setProject] = useState<any>(null);
+  const [notes, setNotes] = useState<ProjectNote[]>([]);
+  const [timeline, setTimeline] = useState<ProjectTimelineItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
     setLoading(true);
-    fetchProjectById(id)
-      .then(data => {
-        setProject(data);
+    
+    const loadProjectData = async () => {
+      try {
+        const [projectData, notesData, timelineData] = await Promise.all([
+          fetchProjectById(id),
+          fetchProjectNotes(id),
+          fetchProjectTimeline(id)
+        ]);
+        
+        setProject(projectData);
+        setNotes(notesData);
+        setTimeline(timelineData);
         setLoading(false);
-      })
-      .catch(err => {
+      } catch (err: any) {
         setError(err.message);
         setLoading(false);
-      });
+      }
+    };
+
+    loadProjectData();
   }, [id]);
 
-  const handleStatusChange = (newStatus: string) => {
-    if (id) {
-      // This function will need to be updated to use a context or a state management solution
-      // For now, it will be a placeholder as the context is removed.
-      console.log(`Updating status to: ${newStatus}`);
-      // Example: updateProjectStatus(id, newStatus as typeof project.status);
+  const handleStatusChange = async (newStatus: string) => {
+    if (!id) return;
+    try {
+      const updatedProject = await updateProjectStatus(id, newStatus);
+      setProject(prevProject => ({ ...prevProject, status: updatedProject.status }));
+    } catch (err) {
+      console.error('Error updating project status:', err);
+      alert('Failed to update project status. Please try again.');
     }
   };
 
-  const handleAddNote = (content: string) => {
-    if (id) {
-      // This function will need to be updated to use a context or a state management solution
-      // For now, it will be a placeholder as the context is removed.
-      console.log(`Adding note: ${content}`);
-      // Example: addProjectNote(id, content);
+  const handleAddNote = async (content: string) => {
+    if (!id) return;
+    try {
+      const newNote = await addProjectNote(id, content);
+      setNotes(prevNotes => [newNote, ...prevNotes]);
+    } catch (err) {
+      console.error('Error adding note:', err);
+      alert('Failed to add note. Please try again.');
     }
   };
 
-  const handleUpdateTask = (taskId: string, status: 'completed' | 'current' | 'pending') => {
-    if (id) {
-      // This function will need to be updated to use a context or a state management solution
-      // For now, it will be a placeholder as the context is removed.
-      console.log(`Updating task ${taskId} to status: ${status}`);
-      // Example: updateProjectTask(id, taskId, status);
+  const handleUpdateTask = async (taskId: string, status: 'completed' | 'current' | 'pending') => {
+    if (!id) return;
+    try {
+      const updatedTask = await updateProjectTimelineItem(id, taskId, status);
+      setTimeline(prevTimeline => 
+        prevTimeline.map(task => 
+          task.id === taskId ? { ...task, status: updatedTask.status } : task
+        )
+      );
+    } catch (err) {
+      console.error('Error updating task:', err);
+      alert('Failed to update task. Please try again.');
     }
   };
 
-  const handleAddTask = (title: string, description?: string) => {
-    if (id) {
-      // This function will need to be updated to use a context or a state management solution
-      // For now, it will be a placeholder as the context is removed.
-      console.log(`Adding task: ${title}`);
-      // Example: addProjectTask(id, title, description);
+  const handleAddTask = async (title: string, description?: string) => {
+    if (!id) return;
+    try {
+      const newTask = await addProjectTimelineItem(id, title, description);
+      setTimeline(prevTimeline => [...prevTimeline, newTask]);
+    } catch (err) {
+      console.error('Error adding task:', err);
+      alert('Failed to add task. Please try again.');
     }
   };
 
@@ -189,7 +223,7 @@ export const ProjectDetail: React.FC = () => {
             </div>
 
             {/* Project Notes */}
-            <ProjectNotes project={project} onAddNote={handleAddNote} />
+            <ProjectNotes notes={notes} onAddNote={handleAddNote} />
 
             {/* Project Timeline */}
             <div className="bg-white rounded-xl shadow-lg border border-gray-100">
@@ -203,7 +237,7 @@ export const ProjectDetail: React.FC = () => {
                 <div className="mb-6">
                   <h4 className="text-sm font-semibold text-gray-700 mb-4">Progress Overview</h4>
                   <ProjectTimeline 
-                    timeline={project.timeline} 
+                    timeline={timeline} 
                     orientation="horizontal" 
                     editable={true}
                     onUpdateTask={handleUpdateTask}
@@ -213,7 +247,7 @@ export const ProjectDetail: React.FC = () => {
                 <div className="border-t border-gray-200 pt-6">
                   <h4 className="text-sm font-semibold text-gray-700 mb-4">Detailed Timeline</h4>
                   <ProjectTimeline 
-                    timeline={project.timeline} 
+                    timeline={timeline} 
                     orientation="vertical" 
                     editable={true}
                     onUpdateTask={handleUpdateTask}
@@ -266,7 +300,7 @@ export const ProjectDetail: React.FC = () => {
                       </div>
                       <div className="flex justify-between">
                         <span className="font-medium">Last Updated:</span>
-                        <span className="text-gray-700">{formatDate(project.notes[project.notes.length - 1]?.timestamp || project.createdAt)}</span>
+                        <span className="text-gray-700">{formatDate(notes[0]?.timestamp || project.createdAt)}</span>
                       </div>
                     </div>
                   </div>
