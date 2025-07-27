@@ -81,6 +81,10 @@ export const ProjectDetail: React.FC = () => {
           task.id === taskId ? { ...task, status: updatedTask.status } : task
         )
       );
+      
+      // Refresh project data to get updated progress
+      const updatedProject = await fetchProjectById(id);
+      setProject(updatedProject);
     } catch (err) {
       console.error('Error updating task:', err);
       alert('Failed to update task. Please try again.');

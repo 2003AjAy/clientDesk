@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { ProjectTable } from '../components/ProjectTable';
 import { ProjectFilters } from '../components/ProjectFilters';
-import { fetchProjects } from '../utils/api';
-import { BarChart3, Users, Clock, CheckCircle, TrendingUp, Activity, Search } from 'lucide-react';
+import { fetchProjects, deleteProject } from '../utils/api';
+import { BarChart3, Users, Clock, CheckCircle, TrendingUp, Activity, Search, RefreshCw } from 'lucide-react';
 import { Project } from '../types/Project';
 
 export const Dashboard: React.FC = () => {
@@ -12,7 +12,7 @@ export const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const loadProjects = () => {
     setLoading(true);
     fetchProjects()
       .then(data => {
@@ -23,7 +23,35 @@ export const Dashboard: React.FC = () => {
         setError(err.message);
         setLoading(false);
       });
+  };
+
+  useEffect(() => {
+    loadProjects();
   }, []);
+
+  // Refresh projects when the page becomes visible (user returns from project details)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        loadProjects();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
+  const handleDeleteProject = async (projectId: string) => {
+    if (window.confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
+      try {
+        await deleteProject(projectId);
+        setProjects(prevProjects => prevProjects.filter(project => project.id !== projectId));
+      } catch (err) {
+        console.error('Error deleting project:', err);
+        alert('Failed to delete project. Please try again.');
+      }
+    }
+  };
 
   const filteredProjects = useMemo(() => {
     return projects.filter((project: Project) => {
@@ -143,6 +171,14 @@ export const Dashboard: React.FC = () => {
             <h2 className="text-2xl font-bold text-gray-900">
               Projects ({filteredProjects.length})
             </h2>
+            <button
+              onClick={loadProjects}
+              disabled={loading}
+              className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 disabled:opacity-50"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              Refresh
+            </button>
           </div>
           <ProjectTable projects={filteredProjects} />
         </div>

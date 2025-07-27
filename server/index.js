@@ -27,20 +27,37 @@ app.post('/api/submit', async (req, res) => {
 app.get('/api/projects', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM inquiries ORDER BY date DESC');
-    // Map DB fields to Project type expected by frontend
-    const projects = result.rows.map(row => ({
-      id: row.id.toString(),
-      clientName: row.name,
-      email: row.email,
-      phone: row.phone,
-      projectType: row.project_type,
-      requirements: row.requirements,
-      status: row.status || 'Pending', // Default to Pending if not present
-      createdAt: row.date,
-      progress: row.progress || 0, // Default to 0 if not present
-      timeline: [], // You can implement timeline logic if you have a related table
-      notes: [],    // You can implement notes logic if you have a related table
+    
+    // Get timeline data for all projects to calculate progress
+    const projects = await Promise.all(result.rows.map(async (row) => {
+      // Get timeline items for this project
+      const timelineResult = await pool.query(
+        'SELECT * FROM project_timeline WHERE project_id = $1',
+        [row.id]
+      );
+      
+      const timelineItems = timelineResult.rows;
+      const totalTasks = timelineItems.length;
+      const completedTasks = timelineItems.filter(item => item.status === 'completed').length;
+      
+      // Calculate progress percentage
+      const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+      
+      return {
+        id: row.id.toString(),
+        clientName: row.name,
+        email: row.email,
+        phone: row.phone,
+        projectType: row.project_type,
+        requirements: row.requirements,
+        status: row.status || 'Pending',
+        createdAt: row.date,
+        progress: progress,
+        timeline: [],
+        notes: [],
+      };
     }));
+    
     res.json(projects);
   } catch (error) {
     console.error('Error fetching projects:', error);
@@ -57,6 +74,20 @@ app.get('/api/projects/:id', async (req, res) => {
       return res.status(404).json({ message: 'Project not found' });
     }
     const row = result.rows[0];
+    
+    // Get timeline items for this project to calculate progress
+    const timelineResult = await pool.query(
+      'SELECT * FROM project_timeline WHERE project_id = $1',
+      [id]
+    );
+    
+    const timelineItems = timelineResult.rows;
+    const totalTasks = timelineItems.length;
+    const completedTasks = timelineItems.filter(item => item.status === 'completed').length;
+    
+    // Calculate progress percentage
+    const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+    
     const project = {
       id: row.id.toString(),
       clientName: row.name,
@@ -66,7 +97,7 @@ app.get('/api/projects/:id', async (req, res) => {
       requirements: row.requirements,
       status: row.status || 'Pending',
       createdAt: row.date,
-      progress: row.progress || 0,
+      progress: progress,
       timeline: [],
       notes: [],
     };
@@ -153,6 +184,7 @@ app.put('/api/projects/:id/timeline/:taskId', async (req, res) => {
   const { id, taskId } = req.params;
   const { status } = req.body;
   try {
+    // Update the timeline item status
     const result = await pool.query(
       'UPDATE project_timeline SET status = $1 WHERE id = $2 AND project_id = $3 RETURNING *',
       [status, taskId, id]
@@ -160,6 +192,24 @@ app.put('/api/projects/:id/timeline/:taskId', async (req, res) => {
     if (result.rows.length === 0) {
       return res.status(404).json({ message: 'Timeline item not found' });
     }
+    
+    // Recalculate and update project progress
+    const timelineResult = await pool.query(
+      'SELECT * FROM project_timeline WHERE project_id = $1',
+      [id]
+    );
+    
+    const timelineItems = timelineResult.rows;
+    const totalTasks = timelineItems.length;
+    const completedTasks = timelineItems.filter(item => item.status === 'completed').length;
+    const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+    
+    // Update the project's progress in the database
+    await pool.query(
+      'UPDATE inquiries SET progress = $1 WHERE id = $2',
+      [progress, id]
+    );
+    
     res.json(result.rows[0]);
   } catch (error) {
     console.error('Error updating project timeline item:', error);
