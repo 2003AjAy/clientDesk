@@ -4,6 +4,7 @@ import { ProjectFilters } from '../components/ProjectFilters';
 import { fetchProjects, deleteProject } from '../utils/api';
 import { BarChart3, Users, Clock, CheckCircle, TrendingUp, Activity, Search, RefreshCw } from 'lucide-react';
 import { Project } from '../types/Project';
+import DashboardNavbar from '../components/DashboardNavbar';
 
 export const Dashboard: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('All');
@@ -77,6 +78,7 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
+      <DashboardNavbar />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-10">

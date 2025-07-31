@@ -1,37 +1,57 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ProjectProvider } from './context/ProjectContext';
+import { AuthProvider } from './context/AuthContext';
 
 // Pages
 import LandingPage from './pages/LandingPage';
 import { Dashboard } from './pages/Dashboard';
-// Fix import: ProjectDetail should be a default export, not a named export
 import { ProjectDetail } from './pages/ProjectDetails';
+import Login from './pages/Login';
+import Unauthorized from './pages/Unauthorized';
+
+// Components
+import { PrivateRoute } from './components/PrivateRoute';
 
 import './index.css';
 
 function App() {
   return (
-    <ProjectProvider>
-      <Router>
-        <div className="min-h-screen bg-gray-50">
-          <Routes>
-            {/* Landing Page */}
-            <Route path="/" element={<LandingPage />} />
+    <AuthProvider>
+      <ProjectProvider>
+        <Router>
+          <div className="min-h-screen bg-gray-50">
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/unauthorized" element={<Unauthorized />} />
 
-            {/* Redirect root to /dashboard if you want dashboard as default */}
-            {/* <Route path="/" element={<Navigate to="/dashboard" replace />} /> */}
+              {/* Protected Routes */}
+              <Route 
+                path="/dashboard" 
+                element={
+                  <PrivateRoute>
+                    <Dashboard />
+                  </PrivateRoute>
+                } 
+              />
+              <Route 
+                path="/project/:id" 
+                element={
+                  <PrivateRoute>
+                    <ProjectDetail />
+                  </PrivateRoute>
+                } 
+              />
 
-            {/* Dashboard & Project Detail Routes */}
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/project/:id" element={<ProjectDetail />} />
-
-            {/* Fallback or 404 route (optional) */}
-            {/* <Route path="*" element={<NotFound />} /> */}
-          </Routes>
-        </div>
-      </Router>
-    </ProjectProvider>
+              {/* Fallback route */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </div>
+        </Router>
+      </ProjectProvider>
+    </AuthProvider>
   );
 }
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Code, Menu, X, ArrowRight } from 'lucide-react';
+import { Code, Menu, X, ArrowRight, LogIn } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface NavbarProps {
@@ -76,8 +76,19 @@ const Navbar: React.FC<NavbarProps> = ({ onOpenForm }) => {
             </div>
           </div>
 
-          {/* CTA Button */}
-          <div className="hidden md:block">
+          {/* CTA Buttons */}
+          <div className="hidden md:block flex items-center space-x-4">
+            <button
+              onClick={() => navigate('/login')}
+              className={`inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                isScrolled
+                  ? 'text-gray-700 hover:text-blue-600'
+                  : 'text-white hover:text-blue-200'
+              }`}
+            >
+              <LogIn className="w-4 h-4 mr-2" />
+              Login
+            </button>
             <button
               onClick={() => navigate('/dashboard')}
               className={`group inline-flex items-center px-6 py-2 text-sm font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 ${
@@ -123,7 +134,17 @@ const Navbar: React.FC<NavbarProps> = ({ onOpenForm }) => {
                   {link.name}
                 </button>
               ))}
-              <div className="pt-2 mt-2 border-t border-gray-200">
+              <div className="pt-2 mt-2 border-t border-gray-200 space-y-2">
+                <button
+                  onClick={() => {
+                    navigate('/login');
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full flex items-center justify-center px-4 py-2 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Login
+                </button>
                 <button
                   onClick={() => {
                     navigate('/dashboard');
