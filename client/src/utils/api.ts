@@ -1,17 +1,19 @@
+const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || 'https://clientdesk.onrender.com';
+
 export async function fetchProjects() {
-  const response = await fetch('/api/projects');
+  const response = await fetch(`${API_BASE_URL}/api/projects`);
   if (!response.ok) throw new Error('Failed to fetch projects');
   return response.json();
 }
 
 export async function fetchProjectById(id: string) {
-  const response = await fetch(`/api/projects/${id}`);
+  const response = await fetch(`${API_BASE_URL}/api/projects/${id}`);
   if (!response.ok) throw new Error('Failed to fetch project');
   return response.json();
 }
 
 export async function deleteProject(id: string) {
-  const response = await fetch(`/api/projects/${id}`, {
+  const response = await fetch(`${API_BASE_URL}/api/projects/${id}`, {
     method: 'DELETE',
   });
   if (!response.ok) throw new Error('Failed to delete project');
@@ -20,13 +22,13 @@ export async function deleteProject(id: string) {
 
 // Project Notes API
 export async function fetchProjectNotes(projectId: string) {
-  const response = await fetch(`/api/projects/${projectId}/notes`);
+  const response = await fetch(`${API_BASE_URL}/api/projects/${projectId}/notes`);
   if (!response.ok) throw new Error('Failed to fetch project notes');
   return response.json();
 }
 
 export async function addProjectNote(projectId: string, content: string) {
-  const response = await fetch(`/api/projects/${projectId}/notes`, {
+  const response = await fetch(`${API_BASE_URL}/api/projects/${projectId}/notes`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -39,13 +41,13 @@ export async function addProjectNote(projectId: string, content: string) {
 
 // Project Timeline API
 export async function fetchProjectTimeline(projectId: string) {
-  const response = await fetch(`/api/projects/${projectId}/timeline`);
+  const response = await fetch(`${API_BASE_URL}/api/projects/${projectId}/timeline`);
   if (!response.ok) throw new Error('Failed to fetch project timeline');
   return response.json();
 }
 
 export async function addProjectTimelineItem(projectId: string, title: string, description?: string) {
-  const response = await fetch(`/api/projects/${projectId}/timeline`, {
+  const response = await fetch(`${API_BASE_URL}/api/projects/${projectId}/timeline`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -57,7 +59,7 @@ export async function addProjectTimelineItem(projectId: string, title: string, d
 }
 
 export async function updateProjectTimelineItem(projectId: string, taskId: string, status: string) {
-  const response = await fetch(`/api/projects/${projectId}/timeline/${taskId}`, {
+  const response = await fetch(`${API_BASE_URL}/api/projects/${projectId}/timeline/${taskId}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -69,7 +71,7 @@ export async function updateProjectTimelineItem(projectId: string, taskId: strin
 }
 
 export async function updateProjectStatus(projectId: string, status: string) {
-  const response = await fetch(`/api/projects/${projectId}/status`, {
+  const response = await fetch(`${API_BASE_URL}/api/projects/${projectId}/status`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',

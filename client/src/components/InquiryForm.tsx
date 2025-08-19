@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Send, User, Mail, Phone, Briefcase, FileText, Calendar } from 'lucide-react';
+const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || 'https://clientdesk.onrender.com';
 import { InquiryFormData, FormErrors, PROJECT_TYPES } from '../types';
 import { validateForm, isValidForm } from '../utils/validation';
 
@@ -46,7 +47,7 @@ const InquiryForm: React.FC<InquiryFormProps> = ({ isOpen, onClose }) => {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch('http://localhost:5000/api/submit', {
+      const response = await fetch(`${API_BASE_URL}/api/submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
